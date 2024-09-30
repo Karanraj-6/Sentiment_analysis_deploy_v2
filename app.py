@@ -4,9 +4,11 @@ from transformers import DistilBertForSequenceClassification, DistilBertTokenize
 import boto3
 import os
 
+# Initialize S3 client
 s3 = boto3.client('s3')
-bucket_name = 'sentimentanalysiskaran'  
+bucket_name = 'sentimentanalysiskaran'  # Your S3 bucket name
 
+# List of model files to download from S3
 files = [
     {"s3_key": "sentiment_model/config.json", "local_path": "sentiment_model/config.json"},
     {"s3_key": "sentiment_model/model.safetensors", "local_path": "sentiment_model/model.safetensors"},
@@ -15,9 +17,11 @@ files = [
     {"s3_key": "sentiment_model/vocab.txt", "local_path": "sentiment_model/vocab.txt"}
 ]
 
+# Ensure directory exists for model files
 if not os.path.exists('sentiment_model'):
     os.makedirs('sentiment_model')
 
+# Function to download files from S3
 def download_from_s3():
     """Download model files from S3."""
     for file in files:
@@ -27,8 +31,12 @@ def download_from_s3():
             print(f"{file['s3_key']} downloaded successfully.")
         except Exception as e:
             print(f"Error downloading {file['s3_key']}: {str(e)}")
+            st.error(f"Error downloading {file['s3_key']}: {str(e)}")
+            st.stop()  # Stop execution if download fails
 
+# Download model files
 download_from_s3()
+
 # Load the model and tokenizer
 try:
     model = DistilBertForSequenceClassification.from_pretrained('./sentiment_model')
@@ -42,6 +50,7 @@ def preprocess_input(input_text):
     encoded_input = tokenizer(input_text, padding='max_length', truncation=True, return_tensors='pt', max_length=512)
     return encoded_input
 
+# Streamlit UI elements
 st.markdown(
     """
     <style>
